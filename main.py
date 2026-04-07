@@ -8,6 +8,12 @@ import os
 
 if "user_data" not in st.session_state:
     st.session_state.user_data = None
+
+if "page" not in st.session_state:
+    st.session_state.page = "login"
+
+if "user_data" not in st.session_state:
+    st.session_state.user_data = {}
     
 # -----------------------------
 # ⚙️ PAGE CONFIG
@@ -115,6 +121,75 @@ with col1:
 with col2:
     send = st.button("➤")
 
+if st.session_state.page == "login":
+
+    st.title("🔐 Oru Nanban Login")
+
+    option = st.selectbox("Choose", ["Login", "Signup"])
+
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if option == "Signup":
+        confirm = st.text_input("Confirm Password", type="password")
+
+    if st.button("Continue"):
+
+        if username and password:
+            st.session_state.user_data["username"] = username
+
+            if option == "Signup":
+                if password != confirm:
+                    st.error("Passwords do not match")
+                    st.stop()
+
+            st.session_state.page = "verification"
+            st.rerun()
+        else:
+            st.error("Fill all fields")
+
+    st.stop()
+
+if st.session_state.page == "verification":
+
+    st.title("📄 Basic Details")
+
+    dob = st.date_input("Date of Birth")
+    gender = st.selectbox("Gender", ["Male", "Female", "Other"])
+
+    if st.button("Next ➡️"):
+        st.session_state.user_data["dob"] = str(dob)
+        st.session_state.user_data["gender"] = gender
+
+        st.session_state.page = "emergency"
+        st.rerun()
+
+    st.stop()
+
+if st.session_state.page == "emergency":
+
+    st.title("🚨 Emergency Contacts")
+
+    name1 = st.text_input("Trusted Person 1 Name")
+    phone1 = st.text_input("Phone Number 1")
+
+    name2 = st.text_input("Trusted Person 2 Name")
+    phone2 = st.text_input("Phone Number 2")
+
+    if st.button("Finish ✅"):
+
+        st.session_state.user_data["emergency"] = [
+            {"name": name1, "phone": phone1},
+            {"name": name2, "phone": phone2},
+        ]
+
+        st.session_state.page = "chat"
+        st.rerun()
+
+    st.stop()
+
+
+
 # -----------------------------
 # 🔍 SIMILARITY
 # -----------------------------
@@ -187,3 +262,12 @@ for role, msg in st.session_state.chat_history:
             f"<div style='text-align:left; background:#F1F0F0; padding:10px; border-radius:10px; margin:5px'>{msg}</div>",
             unsafe_allow_html=True
         )
+
+if st.session_state.page == "chat":
+
+    st.success("Welcome " + st.session_state.user_data["username"])
+
+    # 👉 your logo
+    st.image("logo.png", width=120)
+
+    # 👉 your existing chatbot code continues here
