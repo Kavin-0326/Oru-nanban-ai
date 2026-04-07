@@ -6,13 +6,15 @@ import faiss
 from dotenv import load_dotenv
 import os
 
+if "user_data" not in st.session_state:
+    st.session_state.user_data = None
+    
 # -----------------------------
 # ⚙️ PAGE CONFIG
 # -----------------------------
 st.set_page_config(
     page_title="Oru Nanban",
-    page_icon="logo." \
-    "png",
+    page_icon="logo.png",
     layout="centered"
 )
 
@@ -60,6 +62,51 @@ st.markdown("</div>", unsafe_allow_html=True)
 # -----------------------------
 # 💬 INPUT UI
 # -----------------------------
+
+if st.session_state.user_data is None:
+
+    st.title("🧠 Oru Nanban - Welcome")
+
+    st.subheader("👤 User Details")
+
+    name = st.text_input("Full Name")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    dob = st.date_input("Date of Birth")
+
+    gender = st.selectbox("Gender", ["Male", "Female", "Other"])
+
+    language = st.selectbox("Preferred Language", ["Tamil", "English", "Telugu"])
+
+    college = st.text_input("College / School")
+    hobbies = st.text_input("Hobbies")
+    likes = st.text_input("Likes")
+    dislikes = st.text_input("Dislikes")
+
+    emergency_contact = st.text_input("Emergency Contact Number")
+
+    mental_state = st.selectbox(
+        "How are you feeling today?",
+        ["Happy 😊", "Okay 🙂", "Sad 😔", "Very Stressed 😣"]
+    )
+
+    if st.button("Start Chat 💬"):
+
+        if name and username and password:
+            st.session_state.user_data = {
+                "name": name,
+                "language": language,
+                "mental_state": mental_state,
+                "emergency": emergency_contact
+            }
+            st.success("Welcome " + name)
+            st.rerun()
+        else:
+            st.error("Please fill required fields")
+
+    st.stop()
+
 col1, col2 = st.columns([4,1])
 
 with col1:
@@ -87,11 +134,18 @@ if send and user_input:
         [f"{role}: {msg}" for role, msg in st.session_state.chat_history]
     )
 
+    user = st.session_state.user_data  # ✅ NEW LINE
+
     prompt = f"""
 You are ORU NANBAN, a caring emotional support AI.
+
+User Name: {user['name']}
+Preferred Language: {user['language']}
+Mental State: {user['mental_state']}
+
 - Speak like a close friend
 - Support Tamil, English, Telugu, Tanglish
-- Reply in same language
+- Reply in user's language
 - Be calm and supportive
 
 Conversation History:
@@ -111,9 +165,14 @@ User: {user_input}
 
     bot_reply = response.choices[0].message.content
 
+    # 🚨 OPTIONAL SAFETY MESSAGE
+    if "Very Stressed" in user["mental_state"]:
+        st.warning("⚠️ If you feel overwhelmed, please contact your emergency person.")
+
     st.session_state.chat_history.append(("User", user_input))
     st.session_state.chat_history.append(("Nanban", bot_reply))
 
+    
 # -----------------------------
 # 💬 CHAT DISPLAY (BUBBLES)
 # -----------------------------
